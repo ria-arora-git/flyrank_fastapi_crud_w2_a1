@@ -69,3 +69,40 @@ async def create_task(request: Request):
     tasks.append(new_task)
 
     return new_task
+
+@app.put("/tasks/{task_id}")
+async def update_task(task_id: int, request: Request):
+    for task in tasks:
+        if task["id"] == task_id:
+            data = await request.json()
+
+            if not data:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "Invalid body"}
+                )
+
+            if "title" in data:
+                task["title"] = data["title"]
+
+            if "done" in data:
+                task["done"] = data["done"]
+
+            return task
+
+    return JSONResponse(
+        status_code=404,
+        content={"error": f"Task {task_id} not found"}
+    )
+
+@app.delete("/tasks/{task_id}", status_code=204)
+async def delete_task(task_id: int):
+    for task in tasks:
+        if task["id"] == task_id:
+            tasks.remove(task)
+            return
+
+    return JSONResponse(
+        status_code=404,
+        content={"error": f"Task {task_id} not found"}
+    )
