@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
@@ -21,7 +21,7 @@ tasks = [
     }
 ]
 
-@app.get("/")
+@app.get("/", summary="Get API information")
 def root():
     return {
         "name": "Task API",
@@ -29,15 +29,15 @@ def root():
         "endpoints": ["/tasks"]
     }
 
-@app.get("/health")
+@app.get("/health", summary="Check API health")
 def health():
     return {"status": "ok"}
 
-@app.get("/tasks")
+@app.get("/tasks", summary="Get all the tasks")
 def get_tasks():
     return tasks
 
-@app.get("/tasks/{task_id}")
+@app.get("/tasks/{task_id}", summary="Get a specific task")
 def get_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
@@ -49,9 +49,7 @@ def get_task(task_id: int):
     )
 
 @app.post("/tasks", status_code=201)
-async def create_task(request: Request):
-    data = await request.json()
-
+async def create_task(data: dict):
     if "title" not in data or not data["title"]:
         return JSONResponse(
             status_code=400,
@@ -71,11 +69,9 @@ async def create_task(request: Request):
     return new_task
 
 @app.put("/tasks/{task_id}")
-async def update_task(task_id: int, request: Request):
+async def update_task(task_id: int, data: dict):
     for task in tasks:
         if task["id"] == task_id:
-            data = await request.json()
-
             if not data:
                 return JSONResponse(
                     status_code=400,
@@ -95,7 +91,7 @@ async def update_task(task_id: int, request: Request):
         content={"error": f"Task {task_id} not found"}
     )
 
-@app.delete("/tasks/{task_id}", status_code=204)
+@app.delete("/tasks/{task_id}", status_code=204, summary="Delete a task")
 async def delete_task(task_id: int):
     for task in tasks:
         if task["id"] == task_id:
